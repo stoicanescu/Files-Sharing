@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">filessharing</string>
+    <string name="wifi_button">Enable WIFI</string>
 </resources>
