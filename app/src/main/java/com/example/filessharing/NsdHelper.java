@@ -91,7 +91,7 @@ class NsdHelper {
                     // The name of the service tells the user what they'd be
                     // connecting to. It could be "Bob's Chat App".
                     Log.d(TAG, "Same machine: " + service.getServiceName());
-                } else if (service.getServiceName().contains(serviceName)){
+                } else {//if (service.getServiceName().contains(serviceName)){
                     Log.d(TAG, "Different machine: " + service.getServiceName());
 //                    mNsdManager.resolveService(service, resolveListener);
                 }
@@ -124,9 +124,7 @@ class NsdHelper {
     }
 
     void stopDiscoverService() {
-        Log.d(TAG, "stopDiscoverService: a intrat");
         mNsdManager.stopServiceDiscovery(discoveryListener);
-        Log.d(TAG, "stopDiscoverService: a iesit");
     }
 
     void startDiscoverServices() {

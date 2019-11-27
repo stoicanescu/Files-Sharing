@@ -21,7 +21,7 @@ public class MainActivity extends AppCompatActivity {
     WifiManager wifiManager;
     NsdHelper nsdHelper;
 
-    String serviceName = "TitiTransfer";
+    String serviceName;
     static boolean discoveryStarted = false;
 
     @Override
@@ -29,9 +29,14 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        createUniqueServiceName();
         initLayoutComponents();
         initWifiConnectionReceiver();
         initNsdHelper();
+    }
+
+    private void createUniqueServiceName() {
+        serviceName = android.os.Build.MANUFACTURER + " " + android.os.Build.MODEL;
     }
 
     private void initLayoutComponents() {
