@@ -2,12 +2,14 @@ package com.example.filessharing;
 
 import android.app.Activity;
 import android.content.Context;
-import android.graphics.Color;
 import android.net.nsd.NsdManager;
 import android.net.nsd.NsdServiceInfo;
 import android.util.Log;
+import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import java.net.InetAddress;
 import java.util.ArrayList;
@@ -19,6 +21,8 @@ class NsdHelper {
     private String serviceName;
     private ArrayList<String> servicesArray = new ArrayList<String>();
     ArrayAdapter<String> adapter;
+    ListView listView;
+    ArrayList<Device> devices = new ArrayList<Device>();
 
     private boolean registrationStarted = false;
     private boolean discoveryStarted = false;
@@ -33,22 +37,13 @@ class NsdHelper {
     NsdHelper(Activity mActivity, String serviceName) {
         this.serviceName = serviceName;
         this.mActivity = mActivity;
-        adapter = new ArrayAdapter<String>(mActivity, R.layout.list_view, servicesArray);
-        ListView listView = (ListView) mActivity.findViewById(R.id.listView);
-        listView.setAdapter(adapter);
+        configAdapter();
     }
 
-    void startRegisterService(int port) {
-        NsdServiceInfo serviceInfo = new NsdServiceInfo();
-        serviceInfo.setServiceName(serviceName);
-        serviceInfo.setServiceType(SERVICE_TYPE);
-        serviceInfo.setPort(port);
-
-        mNsdManager = (NsdManager) mActivity.getSystemService(Context.NSD_SERVICE);
-
-        mNsdManager.registerService(
-                serviceInfo, NsdManager.PROTOCOL_DNS_SD, registrationListener);
-        registrationStarted = true;
+    private void configAdapter() {
+        adapter = new ArrayAdapter<String>(mActivity, R.layout.list_view, servicesArray);
+        listView = (ListView) mActivity.findViewById(R.id.listView);
+        listView.setAdapter(adapter);
     }
 
     void initializeRegistrationListener() {
@@ -108,7 +103,7 @@ class NsdHelper {
                     Log.d(TAG, "Same machine: " + service.getServiceName());
                 } else {
                     Log.d(TAG, "Different machine: " + service.getServiceName());
-//                    mNsdManager.resolveService(service, resolveListener);
+                    mNsdManager.resolveService(service, resolveListener);
                     servicesArray.add(service.getServiceName());
                     handleServicesArrayChange();
                 }
@@ -116,10 +111,14 @@ class NsdHelper {
 
             @Override
             public void onServiceLost(NsdServiceInfo service) {
-                // When the network service is no longer available.
-                // Internal bookkeeping code goes here.
                 Log.e(TAG, "service lost: " + service);
                 servicesArray.remove(service.getServiceName());
+                for(Device dev: devices) {
+                    if(dev.getDeviceName().equals(service.getServiceName())) {
+                        devices.remove(dev);
+                        break;
+                    }
+                }
                 handleServicesArrayChange();
             }
 
@@ -150,11 +149,63 @@ class NsdHelper {
         }
     }
 
+    void startRegisterService(int port) {
+        NsdServiceInfo serviceInfo = new NsdServiceInfo();
+        serviceInfo.setServiceName(serviceName);
+        serviceInfo.setServiceType(SERVICE_TYPE);
+        serviceInfo.setPort(port);
+
+        mNsdManager = (NsdManager) mActivity.getSystemService(Context.NSD_SERVICE);
+
+        mNsdManager.registerService(
+                serviceInfo, NsdManager.PROTOCOL_DNS_SD, registrationListener);
+        registrationStarted = true;
+    }
+
+    private NsdManager.ResolveListener resolveListener = new NsdManager.ResolveListener() {
+
+            @Override
+            public void onResolveFailed(NsdServiceInfo serviceInfo, int errorCode) {
+                // Called when the resolve fails. Use the error code to debug.
+                Log.e(TAG, "Resolve failed " + errorCode);
+                Log.e(TAG, "service = " + serviceInfo);
+            }
+
+            @Override
+            public void onServiceResolved(NsdServiceInfo serviceInfo) {
+                Log.d(TAG, "Resolve Succeeded. " + serviceInfo);
+                devices.add(new Device(serviceInfo.getServiceName(), serviceInfo.getHost(), serviceInfo.getPort()));
+                onDeviceClick();
+            }
+        };
+
     private void handleServicesArrayChange() {
         mActivity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
                 adapter.notifyDataSetChanged();
+            }
+        });
+    }
+
+    private void onDeviceClick() {
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
+                InetAddress ip = null;
+                int port = 0;
+                for(Device dev: devices) {
+                    if(dev.getDeviceName().equals(servicesArray.get(position))) {
+                        ip = dev.getHostAddress();
+                        port = dev.getHostPort();
+                    }
+                }
+                if(ip != null) {
+                    BackgroundTask bt = new BackgroundTask();
+                    bt.execute(ip, port, "mama are mere", mActivity);
+                }
+                else
+                    Toast.makeText(mActivity.getApplicationContext(), "Connection failed!", Toast.LENGTH_SHORT).show();
             }
         });
     }

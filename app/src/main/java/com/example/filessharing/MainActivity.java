@@ -9,6 +9,9 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 
+import java.io.IOException;
+import java.net.ServerSocket;
+
 
 public class MainActivity extends AppCompatActivity {
 
@@ -21,6 +24,7 @@ public class MainActivity extends AppCompatActivity {
     NsdHelper nsdHelper;
 
     String serviceName;
+    int servicePort;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,6 +36,12 @@ public class MainActivity extends AppCompatActivity {
         initLayoutComponents();
         initWifiConnectionReceiver();
         initNsdHelper();
+
+        servicePort = generatePort();
+        Server s = new Server(this, servicePort);
+        Thread myThread = new Thread(s);
+        myThread.start();
+
     }
 
     private void createUniqueServiceName() {
@@ -71,7 +81,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         if (nsdHelper != null)
-            nsdHelper.startRegisterService(9000);
+            nsdHelper.startRegisterService(servicePort);
         registerReceiver(wifiReceiver, mIntentFilter);
     }
 
@@ -82,7 +92,6 @@ public class MainActivity extends AppCompatActivity {
         super.onDestroy();
     }
 
-
     public void setWifiOn(View view) {
         wifiManager.setWifiEnabled(true);
     }
@@ -90,4 +99,18 @@ public class MainActivity extends AppCompatActivity {
     public void discoverServices(View view) {
         nsdHelper.startDiscoverServices();
     }
+
+    int generatePort() {
+        ServerSocket socket = null;
+        int port = 9000;
+        try {
+            socket = new ServerSocket(0);
+            port = socket.getLocalPort();
+            socket.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return port;
+    }
+
 }
