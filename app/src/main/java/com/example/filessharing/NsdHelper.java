@@ -2,15 +2,26 @@ package com.example.filessharing;
 
 import android.app.Activity;
 import android.content.Context;
+import android.graphics.Color;
 import android.net.nsd.NsdManager;
 import android.net.nsd.NsdServiceInfo;
 import android.util.Log;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
+
+import java.net.InetAddress;
+import java.util.ArrayList;
 
 class NsdHelper {
 
     private Activity mActivity;
 
     private String serviceName;
+    private ArrayList<String> servicesArray = new ArrayList<String>();
+    ArrayAdapter<String> adapter;
+
+    private boolean registrationStarted = false;
+    private boolean discoveryStarted = false;
 
     private static final String SERVICE_TYPE = "_http._tcp.";
     private static final String TAG = "NsdHelper";
@@ -22,9 +33,12 @@ class NsdHelper {
     NsdHelper(Activity mActivity, String serviceName) {
         this.serviceName = serviceName;
         this.mActivity = mActivity;
+        adapter = new ArrayAdapter<String>(mActivity, R.layout.list_view, servicesArray);
+        ListView listView = (ListView) mActivity.findViewById(R.id.listView);
+        listView.setAdapter(adapter);
     }
 
-    void registerService(int port) {
+    void startRegisterService(int port) {
         NsdServiceInfo serviceInfo = new NsdServiceInfo();
         serviceInfo.setServiceName(serviceName);
         serviceInfo.setServiceType(SERVICE_TYPE);
@@ -34,6 +48,7 @@ class NsdHelper {
 
         mNsdManager.registerService(
                 serviceInfo, NsdManager.PROTOCOL_DNS_SD, registrationListener);
+        registrationStarted = true;
     }
 
     void initializeRegistrationListener() {
@@ -91,9 +106,11 @@ class NsdHelper {
                     // The name of the service tells the user what they'd be
                     // connecting to. It could be "Bob's Chat App".
                     Log.d(TAG, "Same machine: " + service.getServiceName());
-                } else {//if (service.getServiceName().contains(serviceName)){
+                } else {
                     Log.d(TAG, "Different machine: " + service.getServiceName());
 //                    mNsdManager.resolveService(service, resolveListener);
+                    servicesArray.add(service.getServiceName());
+                    handleServicesArrayChange();
                 }
             }
 
@@ -102,6 +119,8 @@ class NsdHelper {
                 // When the network service is no longer available.
                 // Internal bookkeeping code goes here.
                 Log.e(TAG, "service lost: " + service);
+                servicesArray.remove(service.getServiceName());
+                handleServicesArrayChange();
             }
 
             @Override
@@ -123,12 +142,34 @@ class NsdHelper {
         };
     }
 
-    void stopDiscoverService() {
-        mNsdManager.stopServiceDiscovery(discoveryListener);
+    void startDiscoverServices() {
+        if(!discoveryStarted) {
+            mNsdManager.discoverServices(
+                    SERVICE_TYPE, NsdManager.PROTOCOL_DNS_SD, discoveryListener);
+            discoveryStarted = true;
+        }
     }
 
-    void startDiscoverServices() {
-        mNsdManager.discoverServices(
-                SERVICE_TYPE, NsdManager.PROTOCOL_DNS_SD, discoveryListener);
+    private void handleServicesArrayChange() {
+        mActivity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                adapter.notifyDataSetChanged();
+            }
+        });
+    }
+
+    void tearDown() {
+        adapter.clear();
+        handleServicesArrayChange();
+
+        if(registrationStarted) {
+            mNsdManager.unregisterService(registrationListener);
+            registrationStarted = false;
+        }
+        if(discoveryStarted) {
+            mNsdManager.stopServiceDiscovery(discoveryListener);
+            discoveryStarted = false;
+        }
     }
 }

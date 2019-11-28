@@ -10,9 +10,9 @@
         android:id="@+id/wifi_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
-        android:text="@string/wifi_button"
         android:onClick="setWifiOn"
+        android:text="@string/wifi_button"
+        app:layout_constraintBottom_toTopOf="@+id/listView"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.498"
         app:layout_constraintStart_toStartOf="parent"
@@ -22,10 +22,19 @@
         android:id="@+id/discover"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Discover"
         android:onClick="discoverServices"
-        app:layout_constraintBottom_toBottomOf="parent"
+        android:text="@string/discover_button"
+        app:layout_constraintBottom_toTopOf="@+id/listView"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/wifi_button" />
+
+    <ListView
+        android:id="@+id/listView"
+        android:layout_width="302dp"
+        android:layout_height="190dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 </androidx.constraintlayout.widget.ConstraintLayout>

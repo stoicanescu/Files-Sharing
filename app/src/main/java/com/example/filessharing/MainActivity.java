@@ -4,7 +4,6 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Context;
 import android.content.IntentFilter;
-import android.net.nsd.NsdManager;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.view.View;
@@ -22,7 +21,6 @@ public class MainActivity extends AppCompatActivity {
     NsdHelper nsdHelper;
 
     String serviceName;
-    static boolean discoveryStarted = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,6 +28,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         createUniqueServiceName();
+
         initLayoutComponents();
         initWifiConnectionReceiver();
         initNsdHelper();
@@ -57,27 +56,30 @@ public class MainActivity extends AppCompatActivity {
         nsdHelper = new NsdHelper(this, serviceName);
         nsdHelper.initializeRegistrationListener();
         nsdHelper.initializeDiscoveryListener();
-        nsdHelper.registerService(9000);
     }
 
     @Override
     protected void onPause() {
-        super.onPause();
+        if (nsdHelper != null) {
+            nsdHelper.tearDown();
+        }
         unregisterReceiver(wifiReceiver);
+        super.onPause();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
+        if (nsdHelper != null)
+            nsdHelper.startRegisterService(9000);
         registerReceiver(wifiReceiver, mIntentFilter);
-
     }
 
     @Override
     protected void onDestroy() {
+        if (nsdHelper != null)
+            nsdHelper.tearDown();
         super.onDestroy();
-        if(wifiReceiver != null)
-            unregisterReceiver(wifiReceiver);
     }
 
 
@@ -86,8 +88,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void discoverServices(View view) {
-        if(!discoveryStarted)
-            nsdHelper.startDiscoverServices();
-            discoveryStarted  = true;
+        nsdHelper.startDiscoverServices();
     }
 }
