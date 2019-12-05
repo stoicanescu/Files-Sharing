@@ -2,4 +2,7 @@
     <string name="app_name">filessharing</string>
     <string name="wifi_button">Enable WIFI</string>
     <string name="discover_button">Discover</string>
+    <string name="photo_video_button">Photo/Video</string>
+    <string name="documents_button">Documents</string>
+    <string name="music_button">Music</string>
 </resources>

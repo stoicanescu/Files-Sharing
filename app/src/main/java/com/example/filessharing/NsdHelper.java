@@ -8,6 +8,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -33,11 +34,15 @@ class NsdHelper {
     private NsdManager mNsdManager;
     private NsdManager.RegistrationListener registrationListener;
     private NsdManager.DiscoveryListener discoveryListener;
+    private NsdManager.ResolveListener resolveListener;
+
+    EditText editText;
 
     NsdHelper(Activity mActivity, String serviceName) {
         this.serviceName = serviceName;
         this.mActivity = mActivity;
         configAdapter();
+        editText = (EditText)mActivity.findViewById(R.id.editText);
     }
 
     private void configAdapter() {
@@ -162,7 +167,17 @@ class NsdHelper {
         registrationStarted = true;
     }
 
-    private NsdManager.ResolveListener resolveListener = new NsdManager.ResolveListener() {
+    private void handleServicesArrayChange() {
+        mActivity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                adapter.notifyDataSetChanged();
+            }
+        });
+    }
+
+    void initializeResolveListener() {
+        resolveListener = new NsdManager.ResolveListener() {
 
             @Override
             public void onResolveFailed(NsdServiceInfo serviceInfo, int errorCode) {
@@ -178,14 +193,6 @@ class NsdHelper {
                 onDeviceClick();
             }
         };
-
-    private void handleServicesArrayChange() {
-        mActivity.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                adapter.notifyDataSetChanged();
-            }
-        });
     }
 
     private void onDeviceClick() {
@@ -200,9 +207,10 @@ class NsdHelper {
                         port = dev.getHostPort();
                     }
                 }
+                String text = editText.getText().toString();
                 if(ip != null) {
                     BackgroundTask bt = new BackgroundTask();
-                    bt.execute(ip, port, "mama are mere", mActivity);
+                    bt.execute(ip, port, text, mActivity);
                 }
                 else
                     Toast.makeText(mActivity.getApplicationContext(), "Connection failed!", Toast.LENGTH_SHORT).show();

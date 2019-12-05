@@ -2,18 +2,25 @@ package com.example.filessharing;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.content.IntentFilter;
+import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 
 import java.io.IOException;
 import java.net.ServerSocket;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends Activity {
 
     Button wifiButton, discover;
 
@@ -29,6 +36,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_main);
 
         createUniqueServiceName();
@@ -37,7 +45,7 @@ public class MainActivity extends AppCompatActivity {
         initWifiConnectionReceiver();
         initNsdHelper();
 
-        servicePort = generatePort();
+        servicePort = generatePort(); //get available port
         Server s = new Server(this, servicePort);
         Thread myThread = new Thread(s);
         myThread.start();
@@ -64,6 +72,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void initNsdHelper() {
         nsdHelper = new NsdHelper(this, serviceName);
+        nsdHelper.initializeResolveListener();
         nsdHelper.initializeRegistrationListener();
         nsdHelper.initializeDiscoveryListener();
     }
@@ -87,8 +96,6 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
-        if (nsdHelper != null)
-            nsdHelper.tearDown();
         super.onDestroy();
     }
 
@@ -111,6 +118,38 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
         return port;
+    }
+
+    private static final int READ_REQUEST_CODE = 42;
+
+    public void performFileSearch(View view) {
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        String[] mimeTypes = new String[]{};
+        intent.setType("*/*");
+
+        switch (view.getId()) {
+            case R.id.photo_video_button: {
+                mimeTypes = new String[]{"image/*", "video/*"};
+                break;
+            }
+            case R.id.documents_button: {
+                mimeTypes = new String[]
+                        {"application/msword","application/vnd.openxmlformats-officedocument.wordprocessingml.document", // .doc & .docx
+                                "application/vnd.ms-powerpoint","application/vnd.openxmlformats-officedocument.presentationml.presentation", // .ppt & .pptx
+                                "application/vnd.ms-excel","application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", // .xls & .xlsx
+                                "text/plain",
+                                "application/pdf",
+                                "application/zip"};
+                break;
+            }
+            case R.id.music_button: {
+                mimeTypes = new String[]{"audio/*"};
+                break;
+            }
+        }
+        intent.putExtra(Intent.EXTRA_MIME_TYPES, mimeTypes);
+        startActivityForResult(intent, READ_REQUEST_CODE);
     }
 
 }

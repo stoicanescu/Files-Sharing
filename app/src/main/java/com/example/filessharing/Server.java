@@ -32,17 +32,15 @@ class Server implements Runnable{
                 mySocket = ss.accept();
                 dis = new DataInputStream(mySocket.getInputStream());
                 message = dis.readUTF();
-
                 mActivity.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        Toast.makeText(mActivity.getApplicationContext(), "Message: " + message + " received!", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(mActivity.getApplicationContext(), "Message: " + message + " received!20", Toast.LENGTH_SHORT).show();
                     }
                 });
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
-
     }
 }
