@@ -36,13 +36,14 @@ class NsdHelper {
     private NsdManager.DiscoveryListener discoveryListener;
     private NsdManager.ResolveListener resolveListener;
 
-    EditText editText;
+
+    private InetAddress ip_receiver_device = null;
+    private int port_receiver_device = 0;
 
     NsdHelper(Activity mActivity, String serviceName) {
         this.serviceName = serviceName;
         this.mActivity = mActivity;
         configAdapter();
-        editText = (EditText)mActivity.findViewById(R.id.editText);
     }
 
     private void configAdapter() {
@@ -197,25 +198,32 @@ class NsdHelper {
 
     private void onDeviceClick() {
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+
+            String dev_name;
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
-                InetAddress ip = null;
-                int port = 0;
                 for(Device dev: devices) {
                     if(dev.getDeviceName().equals(servicesArray.get(position))) {
-                        ip = dev.getHostAddress();
-                        port = dev.getHostPort();
+                        ip_receiver_device  = dev.getHostAddress();
+                        port_receiver_device = dev.getHostPort();
+                        dev_name = dev.getDeviceName();
                     }
                 }
-                String text = editText.getText().toString();
-                if(ip != null) {
-                    BackgroundTask bt = new BackgroundTask();
-                    bt.execute(ip, port, text, mActivity);
+                if(ip_receiver_device != null) {
+                    Toast.makeText(mActivity.getApplicationContext(), "Connected to: " + dev_name, Toast.LENGTH_SHORT).show();
                 }
                 else
                     Toast.makeText(mActivity.getApplicationContext(), "Connection failed!", Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    public InetAddress getIp_receiver_device() {
+        return ip_receiver_device;
+    }
+
+    public int getPort_receiver_device() {
+        return port_receiver_device;
     }
 
     void tearDown() {
