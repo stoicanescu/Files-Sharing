@@ -1,7 +1,5 @@
 package com.example.filessharing;
 
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -9,7 +7,6 @@ import android.content.IntentFilter;
 import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
-import android.os.Environment;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -17,16 +14,9 @@ import android.widget.Button;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 import java.net.ServerSocket;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 public class MainActivity extends Activity {
 
@@ -54,7 +44,7 @@ public class MainActivity extends Activity {
         initNsdHelper();
 
         servicePort = generatePort(); //get available port
-        Server s = new Server(this, servicePort);
+        Receiver s = new Receiver(this, servicePort);
         Thread myThread = new Thread(s);
         myThread.start();
 
@@ -177,6 +167,7 @@ public class MainActivity extends Activity {
             Uri uri = null;
             if (resultData != null) {
                 uri = resultData.getData();
+
                 Log.i("titi", "Uri: " + uri.toString());
                 InputStream iStream = null;
                 try {
@@ -185,10 +176,12 @@ public class MainActivity extends Activity {
                     e.printStackTrace();
                 }
                 try {
-                    byte[] inputData = getBytes(iStream);
+                    File file= new File(uri.getPath());
 
-                    BackgroundTask bt = new BackgroundTask();
-                    bt.execute(nsdHelper.getIp_receiver_device(), nsdHelper.getPort_receiver_device(), inputData, this);
+                    byte[] inputData = getBytes(iStream);
+                    byte[] file_name = file.getName().getBytes();
+                    Sender bt = new Sender();
+                    bt.execute(nsdHelper.getIp_receiver_device(), nsdHelper.getPort_receiver_device(), inputData, file_name);
 
                 }
                 catch (Exception e) {}

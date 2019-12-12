@@ -9,7 +9,7 @@ import java.net.InetAddress;
 import java.net.Socket;
 import java.nio.ByteBuffer;
 
-class BackgroundTask extends AsyncTask {
+class Sender extends AsyncTask {
 
     @Override
     protected Object doInBackground(Object[] objects) {
@@ -20,9 +20,16 @@ class BackgroundTask extends AsyncTask {
             DataOutputStream dos;
             Socket s = new Socket(ip, port);
             dos = new DataOutputStream(s.getOutputStream());
+
+            byte[] file_name = (byte[]) objects[3];
+
+
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            baos.write(ByteBuffer.allocate(4).putInt(message.length).array());
+            baos.write(file_name);
+            System.out.println("zize: " + file_name.length);
+            baos.write(ByteBuffer.allocate(4).putInt(message.length).array());  // file length
             baos.write(message);
+
             byte[] c = baos.toByteArray();
             dos.write(c, 0, c.length);
 

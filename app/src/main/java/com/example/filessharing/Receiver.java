@@ -13,7 +13,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.ByteBuffer;
 
-class Server implements Runnable{
+class Receiver implements Runnable{
     private int port;
     private ServerSocket ss;
     private Socket mySocket;
@@ -21,7 +21,7 @@ class Server implements Runnable{
     private byte[] file_received;
     private Activity mActivity;
     private byte[] message_length_bytes;
-    Server(Activity mActivity, int port) {
+    Receiver(Activity mActivity, int port) {
         this.port = port;
         this.mActivity = mActivity;
     }
@@ -34,6 +34,10 @@ class Server implements Runnable{
             while(true) {
                 mySocket = ss.accept();
                 dis = new DataInputStream(mySocket.getInputStream());
+                byte[] file_name = new byte[11];
+                dis.read(file_name, 0, 11);
+                System.out.println("file name: " + file_name);
+
                 message_length_bytes = new byte[4];
                 dis.read(message_length_bytes, 0, 4);
 
@@ -44,7 +48,6 @@ class Server implements Runnable{
                 while(total_bytes_read != file_size) {
                     bytes_read = dis.read(file_received, total_bytes_read, file_size - total_bytes_read);
                     total_bytes_read += bytes_read;
-                    System.out.println("bytes_read: " + total_bytes_read);
                 }
 
                 System.out.println("bytes: " + String.format("%02x", file_received[4]) + String.format("%02x", file_received[5]) + String.format("%02x", file_received[6]));
