@@ -1,6 +1,5 @@
 package com.example.filessharing;
 
-import android.app.Activity;
 import android.content.Context;
 import android.net.nsd.NsdManager;
 import android.net.nsd.NsdServiceInfo;
@@ -8,22 +7,21 @@ import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.EditText;
-import android.widget.ListView;
 import android.widget.Toast;
 
 import java.net.InetAddress;
 import java.util.ArrayList;
+import java.util.Set;
 
 class NsdHelper {
 
-    private Activity mActivity;
+    private MainActivity mActivity;
 
     private String serviceName;
     private ArrayList<String> servicesArray = new ArrayList<String>();
-    ArrayAdapter<String> adapter;
-    ListView listView;
-    ArrayList<Device> devices = new ArrayList<Device>();
+    private ArrayAdapter<String> adapter;
+
+    private ArrayList<Device> devices = new ArrayList<Device>();
 
     private boolean registrationStarted = false;
     private boolean discoveryStarted = false;
@@ -40,16 +38,15 @@ class NsdHelper {
     private InetAddress ip_receiver_device = null;
     private int port_receiver_device = 0;
 
-    NsdHelper(Activity mActivity, String serviceName) {
+    NsdHelper(MainActivity mActivity, String serviceName) {
         this.serviceName = serviceName;
         this.mActivity = mActivity;
-        configAdapter();
+        _configAdapter();
     }
 
-    private void configAdapter() {
+    private void _configAdapter() {
         adapter = new ArrayAdapter<String>(mActivity, R.layout.list_view, servicesArray);
-        listView = (ListView) mActivity.findViewById(R.id.listView);
-        listView.setAdapter(adapter);
+        mActivity.getList_view().setAdapter(adapter);
     }
 
     void initializeRegistrationListener() {
@@ -110,7 +107,8 @@ class NsdHelper {
                 } else {
                     Log.d(TAG, "Different machine: " + service.getServiceName());
                     mNsdManager.resolveService(service, resolveListener);
-                    servicesArray.add(service.getServiceName());
+                    if(!servicesArray.contains(service.getServiceName()))
+                        servicesArray.add(service.getServiceName());
                     handleServicesArrayChange();
                 }
             }
@@ -151,8 +149,14 @@ class NsdHelper {
         if(!discoveryStarted) {
             mNsdManager.discoverServices(
                     SERVICE_TYPE, NsdManager.PROTOCOL_DNS_SD, discoveryListener);
-            discoveryStarted = true;
         }
+        else {
+            mNsdManager.stopServiceDiscovery(discoveryListener);
+            initializeDiscoveryListener();
+            mNsdManager.discoverServices(
+                    SERVICE_TYPE, NsdManager.PROTOCOL_DNS_SD, discoveryListener);
+        }
+        discoveryStarted = true;
     }
 
     void startRegisterService(int port) {
@@ -163,6 +167,7 @@ class NsdHelper {
 
         mNsdManager = (NsdManager) mActivity.getSystemService(Context.NSD_SERVICE);
 
+        assert mNsdManager != null;
         mNsdManager.registerService(
                 serviceInfo, NsdManager.PROTOCOL_DNS_SD, registrationListener);
         registrationStarted = true;
@@ -197,7 +202,7 @@ class NsdHelper {
     }
 
     private void onDeviceClick() {
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        mActivity.getList_view().setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
             String dev_name;
             @Override
@@ -218,16 +223,16 @@ class NsdHelper {
         });
     }
 
-    public InetAddress getIp_receiver_device() {
+    InetAddress getIp_receiver_device() {
         return ip_receiver_device;
     }
 
-    public int getPort_receiver_device() {
+    int getPort_receiver_device() {
         return port_receiver_device;
     }
 
     void tearDown() {
-        adapter.clear();
+        servicesArray.clear();
         handleServicesArrayChange();
 
         if(registrationStarted) {

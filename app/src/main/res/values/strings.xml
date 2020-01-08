@@ -5,4 +5,5 @@
     <string name="photo_video_button">Photo/Video</string>
     <string name="documents_button">Documents</string>
     <string name="music_button">Music</string>
+    <string name="description"> </string>
 </resources>

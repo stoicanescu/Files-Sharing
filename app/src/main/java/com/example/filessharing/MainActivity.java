@@ -1,6 +1,7 @@
 package com.example.filessharing;
 
 import android.app.Activity;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -9,7 +10,14 @@ import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.webkit.MimeTypeMap;
 import android.widget.Button;
+import android.widget.CheckedTextView;
+import android.widget.ImageButton;
+import android.widget.ListView;
+import android.widget.TextView;
+
+import androidx.core.content.res.TypedArrayUtils;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -17,13 +25,17 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.ServerSocket;
+import java.util.Objects;
 
 public class MainActivity extends Activity {
 
-    Button wifiButton, discover;
+    Button discoverButton;
+    ImageButton wifiButton, photo_videoButton, musicButton, documentsButton;
+    ListView list_view;
+    TextView checked_text_view;
 
     WifiConnectionReceiver wifiReceiver;
-    IntentFilter mIntentFilter;
+    IntentFilter wifiIntentFilter; 
 
     WifiManager wifiManager;
     NsdHelper nsdHelper;
@@ -39,36 +51,39 @@ public class MainActivity extends Activity {
 
         createUniqueServiceName();
 
-        initLayoutComponents();
-        initWifiConnectionReceiver();
-        initNsdHelper();
+        _initLayoutComponents();
+        _initWifiConnectionReceiver();
+        _initNsdHelper();
 
-        servicePort = generatePort(); //get available port
+        servicePort = _generatePort(); //get available port
         Receiver s = new Receiver(this, servicePort);
         Thread myThread = new Thread(s);
         myThread.start();
-
     }
 
     private void createUniqueServiceName() {
         serviceName = android.os.Build.MANUFACTURER + " " + android.os.Build.MODEL;
     }
 
-    private void initLayoutComponents() {
-        wifiButton = (Button) findViewById(R.id.wifi_button);
-        discover = (Button) findViewById(R.id.discover);
+    private void _initLayoutComponents() {
+        wifiButton = findViewById(R.id.wifi_button);
+        discoverButton = findViewById(R.id.discover_button);
+        photo_videoButton = findViewById(R.id.photo_video_button);
+        musicButton = findViewById(R.id.music_button);
+        documentsButton = findViewById(R.id.documents_button);
+        list_view = findViewById(R.id.list_view);
+        checked_text_view = findViewById(R.id.checked_view);
     }
 
-    private void initWifiConnectionReceiver() {
+    private void _initWifiConnectionReceiver() {
         wifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
         wifiReceiver = new WifiConnectionReceiver(wifiManager, this);
 
-        mIntentFilter = new IntentFilter();
-        mIntentFilter.addAction(WifiManager.WIFI_STATE_CHANGED_ACTION);
-
+        wifiIntentFilter = new IntentFilter();
+        wifiIntentFilter.addAction(WifiManager.WIFI_STATE_CHANGED_ACTION);
     }
 
-    private void initNsdHelper() {
+    private void _initNsdHelper() {
         nsdHelper = new NsdHelper(this, serviceName);
         nsdHelper.initializeResolveListener();
         nsdHelper.initializeRegistrationListener();
@@ -89,7 +104,7 @@ public class MainActivity extends Activity {
         super.onResume();
         if (nsdHelper != null)
             nsdHelper.startRegisterService(servicePort);
-        registerReceiver(wifiReceiver, mIntentFilter);
+        registerReceiver(wifiReceiver, wifiIntentFilter);
     }
 
     @Override
@@ -105,7 +120,7 @@ public class MainActivity extends Activity {
         nsdHelper.startDiscoverServices();
     }
 
-    int generatePort() {
+    int _generatePort() {
         ServerSocket socket = null;
         int port = 9000;
         try {
@@ -167,26 +182,37 @@ public class MainActivity extends Activity {
             Uri uri = null;
             if (resultData != null) {
                 uri = resultData.getData();
-
-                Log.i("titi", "Uri: " + uri.toString());
                 InputStream iStream = null;
                 try {
+                    assert uri != null;
                     iStream = getContentResolver().openInputStream(uri);
                 } catch (FileNotFoundException e) {
                     e.printStackTrace();
                 }
                 try {
-                    File file= new File(uri.getPath());
+                    File file= new File(Objects.requireNonNull(uri.getPath()));
 
+                    assert iStream != null;
                     byte[] inputData = getBytes(iStream);
-                    byte[] file_name = file.getName().getBytes();
-                    Sender bt = new Sender();
-                    bt.execute(nsdHelper.getIp_receiver_device(), nsdHelper.getPort_receiver_device(), inputData, file_name);
+                    byte[] file_name = (file.getName() + "." + _getfileExtension(uri)).getBytes();
 
+                    Sender bt = new Sender();
+                    bt.execute(nsdHelper.getIp_receiver_device(),
+                            nsdHelper.getPort_receiver_device(),
+                            file_name, inputData);
                 }
-                catch (Exception e) {}
+                catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         }
+    }
+    private String _getfileExtension(Uri uri) {
+        String extension;
+        ContentResolver contentResolver = getContentResolver();
+        MimeTypeMap mimeTypeMap = MimeTypeMap.getSingleton();
+        extension= mimeTypeMap.getExtensionFromMimeType(contentResolver.getType(uri));
+        return extension;
     }
 
     public byte[] getBytes(InputStream inputStream) throws IOException {
@@ -199,5 +225,17 @@ public class MainActivity extends Activity {
             byteBuffer.write(buffer, 0, len);
         }
         return byteBuffer.toByteArray();
+    }
+
+    public ListView getList_view() {
+        return list_view;
+    }
+
+    public ImageButton getWifiButton() {
+        return wifiButton;
+    }
+
+    public TextView getChecked_text_view() {
+        return checked_text_view;
     }
 }

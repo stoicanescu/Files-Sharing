@@ -1,0 +1,9 @@
+Magic number -> 4 bytes 
+File type    -> 3 bytes 
+File size    -> 4 bytes
+
+BUFFER:
+[0:3] -> magic number
+[4:6] -> file type: IMG/VID/DOC/AUD
+[7:10] -> file size
+[11:-] -> file ul efectiv

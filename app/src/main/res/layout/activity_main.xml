@@ -4,62 +4,69 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/background6"
+    android:background="#ffffff"
     tools:context=".MainActivity">
 
-    <Button
-        android:id="@+id/documents_button"
-        android:layout_width="116dp"
-        android:layout_height="86dp"
-        android:text="@string/documents_button"
+    <ImageButton
+        android:id="@+id/photo_video_button"
+        android:layout_width="75dp"
+        android:layout_height="62dp"
+        android:background="@drawable/bottom_buttons"
         android:onClick="performFileSearch"
+        android:src="@drawable/photo_icon"
+        android:contentDescription="@string/description"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/documents_button"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/list_view" />
+
+    <ImageButton
+        android:id="@+id/documents_button"
+        android:layout_width="75dp"
+        android:layout_height="62dp"
+        android:background="@drawable/bottom_buttons"
+        android:onClick="performFileSearch"
+        android:src="@drawable/document_icon"
+        android:contentDescription="@string/description"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/listView" />
+        app:layout_constraintTop_toBottomOf="@+id/list_view" />
 
-    <Button
+    <ImageButton
         android:id="@+id/music_button"
-        android:layout_width="116dp"
-        android:layout_height="86dp"
-        android:text="@string/music_button"
+        android:layout_width="75dp"
+        android:layout_height="62dp"
+        android:background="@drawable/bottom_buttons"
         android:onClick="performFileSearch"
+        android:src="@drawable/music_icon"
+        android:contentDescription="@string/description"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/documents_button"
-        app:layout_constraintTop_toBottomOf="@+id/listView" />
+        app:layout_constraintTop_toBottomOf="@+id/list_view" />
 
     <Button
-        android:id="@+id/wifi_button"
-        android:layout_width="wrap_content"
+        android:id="@+id/discover_button"
+        android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:background="@drawable/border"
-        android:onClick="setWifiOn"
-        android:text="@string/wifi_button"
-        android:textColor="#fff"
-        app:layout_constraintBottom_toTopOf="@+id/listView"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.399" />
-
-    <Button
-        android:id="@+id/discover"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:background="@drawable/border"
+        android:layout_marginStart="90dp"
+        android:layout_marginTop="100dp"
+        android:layout_marginEnd="90dp"
+        android:background="@drawable/discover_button_design"
         android:onClick="discoverServices"
         android:text="@string/discover_button"
         android:textColor="#fff"
-        app:layout_constraintBottom_toTopOf="@+id/listView"
+        app:autoSizeMaxTextSize="26sp"
+        app:autoSizeMinTextSize="15sp"
+        app:autoSizeTextType="uniform"
+        app:layout_constraintBottom_toTopOf="@+id/list_view"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.501"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/wifi_button"
-        app:layout_constraintVertical_bias="0.527" />
+        app:layout_constraintTop_toTopOf="parent" />
 
     <ListView
-        android:id="@+id/listView"
+        android:id="@+id/list_view"
         android:layout_width="314dp"
         android:layout_height="172dp"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -69,16 +76,28 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.542" />
 
-
-    <Button
-        android:id="@+id/photo_video_button"
-        android:layout_width="116dp"
-        android:layout_height="86dp"
-        android:text="@string/photo_video_button"
-        android:onClick="performFileSearch"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/documents_button"
+    <ImageButton
+        android:id="@+id/wifi_button"
+        android:layout_width="55dp"
+        android:layout_height="45dp"
+        android:background="@drawable/wifi_button_design"
+        android:onClick="setWifiOn"
+        android:src="@drawable/wifi_buttton"
+        android:contentDescription="@string/description"
+        app:layout_constraintBottom_toTopOf="@+id/discover_button"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/listView" />
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/checked_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="20dp"
+        android:textSize="12sp"
+        app:layout_constraintBottom_toTopOf="@+id/discover_button"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/wifi_button"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
