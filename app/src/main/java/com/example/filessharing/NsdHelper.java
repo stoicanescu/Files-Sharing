@@ -11,7 +11,6 @@ import android.widget.Toast;
 
 import java.net.InetAddress;
 import java.util.ArrayList;
-import java.util.Set;
 
 class NsdHelper {
 
@@ -32,11 +31,11 @@ class NsdHelper {
     private NsdManager mNsdManager;
     private NsdManager.RegistrationListener registrationListener;
     private NsdManager.DiscoveryListener discoveryListener;
-    private NsdManager.ResolveListener resolveListener;
 
 
     private InetAddress ip_receiver_device = null;
     private int port_receiver_device = 0;
+    private String connected_device = null;
 
     NsdHelper(MainActivity mActivity, String serviceName) {
         this.serviceName = serviceName;
@@ -106,7 +105,22 @@ class NsdHelper {
                     Log.d(TAG, "Same machine: " + service.getServiceName());
                 } else {
                     Log.d(TAG, "Different machine: " + service.getServiceName());
-                    mNsdManager.resolveService(service, resolveListener);
+                    mNsdManager.resolveService(service, new NsdManager.ResolveListener() {
+
+                        @Override
+                        public void onResolveFailed(NsdServiceInfo serviceInfo, int errorCode) {
+                            // Called when the resolve fails. Use the error code to debug.
+                            Log.e(TAG, "Resolve failed " + errorCode);
+                            Log.e(TAG, "service = " + serviceInfo);
+                        }
+
+                        @Override
+                        public void onServiceResolved(NsdServiceInfo serviceInfo) {
+                            Log.d(TAG, "Resolve Succeeded. " + serviceInfo);
+                            devices.add(new Device(serviceInfo.getServiceName(), serviceInfo.getHost(), serviceInfo.getPort()));
+                            onDeviceClick();
+                        }
+                    });
                     if(!servicesArray.contains(service.getServiceName()))
                         servicesArray.add(service.getServiceName());
                     handleServicesArrayChange();
@@ -120,6 +134,17 @@ class NsdHelper {
                 for(Device dev: devices) {
                     if(dev.getDeviceName().equals(service.getServiceName())) {
                         devices.remove(dev);
+                        if(connected_device != null && connected_device.equals(service.getServiceName())) {
+                            mActivity.runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    mActivity.getConnectedTo_view().setText("");
+                                    mActivity.getConnectedTo_view().setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0);
+                                    Toast.makeText(mActivity.getApplicationContext(), "Disconnected from: " + connected_device, Toast.LENGTH_SHORT).show();
+                                    connected_device = null;
+                                }
+                            });
+                        }
                         break;
                     }
                 }
@@ -182,40 +207,21 @@ class NsdHelper {
         });
     }
 
-    void initializeResolveListener() {
-        resolveListener = new NsdManager.ResolveListener() {
-
-            @Override
-            public void onResolveFailed(NsdServiceInfo serviceInfo, int errorCode) {
-                // Called when the resolve fails. Use the error code to debug.
-                Log.e(TAG, "Resolve failed " + errorCode);
-                Log.e(TAG, "service = " + serviceInfo);
-            }
-
-            @Override
-            public void onServiceResolved(NsdServiceInfo serviceInfo) {
-                Log.d(TAG, "Resolve Succeeded. " + serviceInfo);
-                devices.add(new Device(serviceInfo.getServiceName(), serviceInfo.getHost(), serviceInfo.getPort()));
-                onDeviceClick();
-            }
-        };
-    }
-
     private void onDeviceClick() {
         mActivity.getList_view().setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
-            String dev_name;
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
                 for(Device dev: devices) {
                     if(dev.getDeviceName().equals(servicesArray.get(position))) {
                         ip_receiver_device  = dev.getHostAddress();
                         port_receiver_device = dev.getHostPort();
-                        dev_name = dev.getDeviceName();
+                        connected_device = dev.getDeviceName();
                     }
                 }
                 if(ip_receiver_device != null) {
-                    Toast.makeText(mActivity.getApplicationContext(), "Connected to: " + dev_name, Toast.LENGTH_SHORT).show();
+                    mActivity.getConnectedTo_view().setText("Connected to: " + connected_device);
+                    mActivity.getConnectedTo_view().setCompoundDrawablesWithIntrinsicBounds(R.drawable.connected_to_check, 0, 0, 0);
                 }
                 else
                     Toast.makeText(mActivity.getApplicationContext(), "Connection failed!", Toast.LENGTH_SHORT).show();
@@ -243,5 +249,8 @@ class NsdHelper {
             mNsdManager.stopServiceDiscovery(discoveryListener);
             discoveryStarted = false;
         }
+        mActivity.getConnectedTo_view().setText("");
+        mActivity.getConnectedTo_view().setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0);
+        connected_device = null;
     }
 }

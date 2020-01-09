@@ -32,7 +32,7 @@ public class MainActivity extends Activity {
     Button discoverButton;
     ImageButton wifiButton, photo_videoButton, musicButton, documentsButton;
     ListView list_view;
-    TextView checked_text_view;
+    TextView checked_text_view, connectedTo_view;
 
     WifiConnectionReceiver wifiReceiver;
     IntentFilter wifiIntentFilter; 
@@ -73,6 +73,7 @@ public class MainActivity extends Activity {
         documentsButton = findViewById(R.id.documents_button);
         list_view = findViewById(R.id.list_view);
         checked_text_view = findViewById(R.id.checked_view);
+        connectedTo_view = findViewById(R.id.connectedTo_view);
     }
 
     private void _initWifiConnectionReceiver() {
@@ -85,7 +86,6 @@ public class MainActivity extends Activity {
 
     private void _initNsdHelper() {
         nsdHelper = new NsdHelper(this, serviceName);
-        nsdHelper.initializeResolveListener();
         nsdHelper.initializeRegistrationListener();
         nsdHelper.initializeDiscoveryListener();
     }
@@ -207,6 +207,7 @@ public class MainActivity extends Activity {
             }
         }
     }
+
     private String _getfileExtension(Uri uri) {
         String extension;
         ContentResolver contentResolver = getContentResolver();
@@ -238,4 +239,9 @@ public class MainActivity extends Activity {
     public TextView getChecked_text_view() {
         return checked_text_view;
     }
+
+    public TextView getConnectedTo_view() {
+        return connectedTo_view;
+    }
+
 }
