@@ -47,6 +47,7 @@ public class WifiConnectionReceiver extends BroadcastReceiver {
                 mActivity.getChecked_text_view().setText("Please connect to Wifi");
                 mActivity.getChecked_text_view().setCompoundDrawablesWithIntrinsicBounds(R.drawable.uncheck_mark, 0, 0, 0);
                 mActivity.getWifiButton().setEnabled(true);
+                mActivity.nsdHelper.tearDown();
             }
         }
     }

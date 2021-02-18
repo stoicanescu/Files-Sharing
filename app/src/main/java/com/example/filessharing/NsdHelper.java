@@ -40,10 +40,10 @@ class NsdHelper {
     NsdHelper(MainActivity mActivity, String serviceName) {
         this.serviceName = serviceName;
         this.mActivity = mActivity;
-        _configAdapter();
+         _configAdapter();
     }
 
-    private void _configAdapter() {
+     private void _configAdapter() {
         adapter = new ArrayAdapter<String>(mActivity, R.layout.list_view, servicesArray);
         mActivity.getList_view().setAdapter(adapter);
     }
@@ -251,6 +251,5 @@ class NsdHelper {
         }
         mActivity.getConnectedTo_view().setText("");
         mActivity.getConnectedTo_view().setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0);
-        connected_device = null;
     }
 }
